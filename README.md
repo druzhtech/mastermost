@@ -1,13 +1,19 @@
-# Введение
+# Description
 
-Мастермост - програмный комплекс и набор инструментов для создания Моста между разнородными цепочками блоков для передачи между ними полезной информации.
+Mastermost is a program and a set of tools for creating a bridge between heterogeneous blockchains for transferring information between them.
 
-Поддержка распределенных реестров основанных на Ethereum, в дальнейшем планируется подключения других типов распределенных реестров.
-## Как запустить узел
+## Сборка
 
-ТД (Требуется Доработка)
+```bash
+npm install # yarn
+npx hardhat compile # compile
+npx hardhat test # testing
+npx hardhat node & # запуск узла
+npx hardhat run tasks/deploy.js --network localhost # развёртывание смарт-контракта в локальной сети
+```
+
 ## Содействие
 
-Если вы встретили проблему, то смело создавайте [New Issue](https://github.com/fintechru/mhlf/issues/new)
+Если вы встретили проблему, то смело создавайте [New Issue](https://github.com/druzhcom/mastermost/issues/new)
 
-Если вы можете внести свой вклад в кодовую базу, улучшить определенный участок кода, то смело создавайте [Pull Request](https://github.com/fintechru/mhlf/pulls)
+Если вы можете внести свой вклад в кодовую базу, улучшить определенный участок кода, то смело создавайте [Pull Request](https://github.com/druzhcom/mastermost/pulls)

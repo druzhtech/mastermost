@@ -1,1 +1,23 @@
-SPEC.md
+# Env
+.env
+
+# Node JS
+node_modules
+package-lock.json
+yarn.lock
+
+# Coverage
+coverage*
+coverage.json
+
+# Typechain
+typechain
+
+# Hardhat
+artifacts
+cache
+gasReporterOutput.json
+
+# VS Code
+vscode-user-settings.json
+vscode-workspace-settings.json
