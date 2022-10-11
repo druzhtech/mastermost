@@ -2,7 +2,7 @@
   "name": "frontend",
   "version": "0.1.0",
   "license": "MIT",
-  "description": "Typescript starter template for hardhat, ethers and react projects using typescript and @web3-react",
+  "description": "",
   "engines": {
     "node": "^16.13.1",
     "npm": "8.1.2"
@@ -23,7 +23,20 @@
     "react-dom": "^17.0.2",
     "react-scripts": "5.0.0",
     "styled-components": "^5.3.3",
-    "typescript": "^4.4.2"
+    "typescript": "^4.4.2",
+    "@nomiclabs/hardhat-ethers": "^2.0.2",
+    "@nomiclabs/hardhat-waffle": "^2.0.1",
+    "@testing-library/jest-dom": "^5.11.4",
+    "@testing-library/react": "^11.1.0",
+    "@testing-library/user-event": "^12.1.10",
+    "chai": "^4.3.4",
+    "ethereum-waffle": "^3.4.0",
+    "ethers": "^5.4.7",
+    "hardhat": "^2.6.4",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
+    "react-scripts": "4.0.3",
+    "web-vitals": "^1.0.1"
   },
   "scripts": {
     "start": "react-scripts start",
