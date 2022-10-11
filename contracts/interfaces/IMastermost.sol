@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSE
 pragma solidity ^0.8.0;
 
-interface Mastermost {
+interface IMastermost {
 
     function sendMsg() external payable;    
 }

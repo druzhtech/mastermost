@@ -5,11 +5,11 @@ Mastermost is a program and a set of tools for creating a bridge between heterog
 ## Сборка
 
 ```bash
-npm install # yarn
-npx hardhat compile # compile
-npx hardhat test # testing
-npx hardhat node & # запуск узла
-npx hardhat run tasks/deploy.js --network localhost # развёртывание смарт-контракта в локальной сети
+npm install
+npx hardhat compile
+npx hardhat test
+npx hardhat node &
+npx hardhat run tasks/deploy.js --network localhost
 ```
 
 ## Содействие

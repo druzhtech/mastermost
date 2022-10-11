@@ -15,7 +15,7 @@ contract DFA {
 
     uint256 numDFA;
     DFA[] private _dfa;
-    mapping(uint256 => DFA) public dfa_pool;
+    mapping(uint256 => DFADetails) public dfa_pool;
 
     event DFATransfer();
     event DFAExchange();
@@ -27,7 +27,7 @@ contract DFA {
         uint8 dfa_type
     ) public returns (uint256 dfaID) {
         dfaID = numDFA++;
-        DFA storage dfa = dfa_pool[dfaID];
+        DFADetails storage dfa = dfa_pool[dfaID];
         dfa.guid = guid;
         dfa.issuer = msg.sender;
         dfa.operator = operator;
