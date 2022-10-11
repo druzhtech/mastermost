@@ -2,11 +2,18 @@
 
 pragma solidity ^0.8.0;
 
+import "@openzeppelin/contracts/security/Pausable.sol";
 import "./ValidatorList.sol";
 
-contract Mastermost is ValidatorList {
+contract Mastermost is ValidatorList, Pausable {
     uint256 protocolVersion = 1;
+    uint256 immutable networkId;
     bool private switchOn;
+
+    address public FeeManager;
+
+// destinationNetwork => last nonce
+    mapping(uint256 => uint256) messageNonce;
 
     //todo сделать справочник
     bytes32 source_chain_id =
@@ -60,26 +67,35 @@ contract Mastermost is ValidatorList {
         _;
     }
 
-    constructor() {
-        addValidator(msg.sender);
+    constructor(uint256 networkId) {
+        networkId = networkId
+        // addValidator(msg.sender);
         // owner = msg.sender;
-        switchOn = true;
+        super._pause();
     }
 
     ///@dev функция создания системного сообытия со значимой для Оракуа информацией
-    function initNewMessage(
+    function initMessage(
         bytes32 _destination_chain_id,
         address _executor_address,
         MessageType _msgType,
         bytes4 _method,
         bytes32 _params
-    ) public {
+    ) public payable returns (bool) {
+
+        require(_destination_chain_id != networkId, "Current ID");
+        
+        address sender = msg.sender(); //TODO: проверки, что отправитель валидный
+
+        require(msg.value == 0, "Not enough Wei for fee")
+        // TODO собрать комиссию: Feemanager.getFee{value: msg.value}(sender, _domainID, destinationDomainID, resourceID, depositData, feeData)
+
         //todo: добавить случайность
         bytes32 _messageId = keccak256(
             abi.encodePacked(
                 protocolVersion,
                 source_chain_id,
-                _destination_chain_id,
+                _destinationNetwork,
                 msg.sender,
                 _executor_address,
                 _msgType,
@@ -87,6 +103,7 @@ contract Mastermost is ValidatorList {
                 _params
             )
         );
+
         address[] memory emptyAddressList;
 
         Message memory message = Message({
@@ -103,11 +120,41 @@ contract Mastermost is ValidatorList {
             messageStatus: MessageStatus.created
         });
 
+        messageNonce[_destination_chain_id] + 1;
         messages[_messageId] = message;
 
         emit MessageCreated(message);
+
+                return true;
+
     }
 
+
+function executeMessages(Message memory message, bytes calldata sign) public {
+        // TODO require(verify(messages, signature), "Invalid proposal signer");
+for (uint256 i = 0; i < proposals.length; i++) {
+            if(isProposalExecuted(proposals[i].originDomainID, proposals[i].depositNonce)) {
+                continue;
+            }
+
+            address handler = _resourceIDToHandlerAddress[proposals[i].resourceID];
+            bytes32 dataHash = keccak256(abi.encodePacked(handler, proposals[i].data));
+
+            IDepositExecute depositHandler = IDepositExecute(handler);
+
+            usedNonces[proposals[i].originDomainID][proposals[i].depositNonce / 256] |= 1 << (proposals[i].depositNonce % 256);
+
+            try depositHandler.executeProposal(proposals[i].resourceID, proposals[i].data) {
+            } catch (bytes memory lowLevelData) {
+                emit FailedHandlerExecution(lowLevelData, proposals[i].originDomainID, proposals[i].depositNonce);
+                usedNonces[proposals[i].originDomainID][proposals[i].depositNonce / 256] &= ~(1 << (proposals[i].depositNonce % 256));
+                continue;
+            }
+
+            emit ProposalExecution(proposals[i].originDomainID, proposals[i].depositNonce, dataHash);
+        }
+        
+}
     // подствердить сделку по ID
     function confirmMessage(bytes32 messageId) public onlyValidator {
         Message storage message = messages[messageId];
@@ -121,6 +168,7 @@ contract Mastermost is ValidatorList {
         } else {
             message.confirmations.push(msg.sender);
         }
+
     }
 
     /// @dev функция приёма внешнего сообщения и вызова метода
