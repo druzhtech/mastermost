@@ -8,13 +8,14 @@ import './interfaces/IMessageProcessor.sol';
 import '@openzeppelin/contracts/utils/cryptography/ECDSA.sol';
 import '@openzeppelin/contracts/utils/cryptography/draft-EIP712.sol';
 import './library/MessageSet.sol';
+
 contract Mastermost is ValidatorList, Pausable, EIP712 {
   using ECDSA for bytes32;
 
   uint256 public protocolVersion = 1;
   bytes32 immutable source_chain_id;
-  address public FeeManager;
 
+  address public FeeManager;
   address public MPCAddress;
 
   bytes32 private constant _MESSAGE_TYPEHASH =
@@ -28,6 +29,7 @@ contract Mastermost is ValidatorList, Pausable, EIP712 {
     );
 
 
+  
   // destination_chain_id => last nonce
   mapping(bytes32 => uint256) destinMsgNonce;
 
@@ -135,7 +137,7 @@ contract Mastermost is ValidatorList, Pausable, EIP712 {
         continue;
       }
 
-    //   bytes32 dataHash = keccak256(abi.encodePacked(msgs[i]));
+    //  bytes32 dataHash = keccak256(abi.encodePacked(msgs[i]));
       // TODO: here we define SC wich should execute aour Message
       IMessageProcessor msgProcessor = IMessageProcessor(
         msgs[i].executor_address
