@@ -3,49 +3,38 @@
 pragma solidity ^0.8.0;
 
 import './ValidatorList.sol';
+import './library/MessageSet.sol';
+import './library/FormatConverter.sol';
+import './interfaces/IMessageManager.sol';
 
-contract Mastermost is ValidatorList {
+// Сетевой мост
+contract MastermostV2 is ValidatorList {
   uint256 public protocolVersion = 1;
   bool private switchOn;
 
-  //todo сделать справочник
+  //TODO сделать справочник
   bytes32 source_chain_id =
     0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470;
 
-  enum MessageStatus {
-    created,
-    done,
-    canceled
-  }
-
-  enum MessageType {
-    read,
-    write
-  }
-
-  struct Message {
-    uint256 version;
-    bytes32 source_chain_id;
-    bytes32 destination_chain_id;
-    bytes32 messageId;
-    address sender_address;
-    address executor_address;
-    MessageType datatype;
-    bytes4 method;
-    bytes32 params;
-    address[] confirmations;
-    MessageStatus messageStatus;
-  }
-
   // подтверждения Валидаторов под сообщением
-  mapping(bytes32 => Message) messages;
+  mapping(bytes32 => MessageSet.Message) messages;
 
-  event MessageCreated(Message message);
+  event MessageCreated(
+    uint256 protocolVersion,
+    bytes32 source_chain_id,
+    bytes32 _destination_chain_id,
+    bytes32 _messageId,
+    bytes sender,
+    bytes _executor_address,
+    MessageSet.MessageType _msgType,
+    bytes32 _method,
+    bytes32 _params
+  );
   event MessageConfirmed(bytes32 messageId);
   event MessageDeclined();
-  event ReturnDataToRemoteSender(Message message);
+  event ReturnDataToRemoteSender(MessageSet.Message message);
 
-  modifier checkIncomeMessage(Message memory message) {
+  modifier checkIncomeMessage(MessageSet.Message memory message) {
     //todo: проверка версии протокола
     //todo: проверка сетей по белым и чёрным спискам
     //todo: проверка адресов указаных в сообщениях
@@ -69,9 +58,11 @@ contract Mastermost is ValidatorList {
   function initNewMessage(
     bytes32 _destination_chain_id,
     address _executor_address,
-    MessageType _msgType,
+    MessageSet.MessageType _msgType,
     bytes4 _method,
-    bytes32 _params
+    bytes32 _params,
+    uint256 collat,
+    uint256 count
   ) public {
     //todo: добавить случайность
     bytes32 _messageId = keccak256(
@@ -86,44 +77,50 @@ contract Mastermost is ValidatorList {
         _params
       )
     );
+
     address[] memory emptyAddressList;
 
-    Message memory message = Message({
-      version: protocolVersion,
-      source_chain_id: source_chain_id,
+    MessageSet.Message memory message = MessageSet.Message({
       destination_chain_id: _destination_chain_id,
-      messageId: _messageId,
       sender_address: msg.sender,
       executor_address: _executor_address,
       datatype: _msgType,
       method: _method,
-      params: _params,
-      confirmations: emptyAddressList,
-      messageStatus: MessageStatus.created
+      params: _params
     });
 
     messages[_messageId] = message;
 
-    emit MessageCreated(message);
+    emit MessageCreated(
+      protocolVersion,
+      source_chain_id,
+      _destination_chain_id,
+      _messageId,
+      addressToBytes(msg.sender),
+      addressToBytes(_executor_address),
+      _msgType,
+      _method,
+      _params
+    );
   }
 
   // подствердить сделку по ID
   function confirmMessage(bytes32 messageId) public onlyValidator {
-    Message storage message = messages[messageId];
+    MessageSet.MessageConfirmation storage messageConfirmation;
     uint256 valNum = _validatorNum();
-    uint256 confirmations = message.confirmations.length;
+    uint256 confirmations = messageConfirmation.confirmations.length;
 
     if (valNum == confirmations + 1) {
-      message.confirmations.push(msg.sender);
-      message.messageStatus = MessageStatus.done;
+      messageConfirmation.confirmations.push(msg.sender);
+      messageConfirmation.messageStatus = MessageSet.MessageStatus.confirmed;
       emit MessageConfirmed(messageId);
     } else {
-      message.confirmations.push(msg.sender);
+      messageConfirmation.confirmations.push(msg.sender);
     }
   }
 
   /// @dev функция приёма внешнего сообщения и вызова метода
-  function serveInputMessage(Message memory inputMessage)
+  function serveInputMessage(MessageSet.Message memory inputMessage)
     public
     checkIncomeMessage(inputMessage)
   {
@@ -133,15 +130,13 @@ contract Mastermost is ValidatorList {
       abi.encode(inputMessage.method, inputMessage.params)
     );
 
-    bytes4 remoteMethod = bytes4(keccak256('getInputFromRemoteSC(bytes)'));
-
-    if (inputMessage.datatype == MessageType.read) {
+    if (inputMessage.datatype == MessageSet.MessageType.read) {
       if (result) {
         initNewMessage(
           inputMessage.source_chain_id,
           inputMessage.sender_address,
-          MessageType.write,
-          remoteMethod,
+          MessageSet.MessageType.write,
+          IMessageManager.mastermostCallback.selector,
           bytesToBytes32Array(data)
         );
       } else {
@@ -150,15 +145,6 @@ contract Mastermost is ValidatorList {
     }
   }
 
-  function bytesToBytes32Array(bytes memory data)
-    public
-    pure
-    returns (bytes32 result)
-  {
-    assembly {
-      result := mload(add(data, 32))
-    }
-  }
 
   function enableBridge() external onlyOwner {
     switchOn = true;

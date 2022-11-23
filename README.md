@@ -1,6 +1,6 @@
 # Description
 
-Software and a toolkit for creating a bridge between heterogeneous blockchains for data transferring between them.
+Software and a toolkit for creating a bridge between heterogeneous (permissioned and permissionless) blockchains for data transferring between them.
 
 ## How to use
 

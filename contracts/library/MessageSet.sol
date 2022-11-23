@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 library MessageSet {
   enum MessageStatus {
     created,
-    done,
+    confirmed,
     canceled
   }
 
@@ -14,17 +14,17 @@ library MessageSet {
   }
 
   struct Message {
-    uint256 version;
-    uint256 nonce;
-    bytes32 source_chain_id;
     bytes32 destination_chain_id;
-    bytes32 message_id;
     address sender_address;
     address executor_address;
     MessageType datatype;
     bytes4 method;
     bytes32 params;
-    // address[] confirmations;
-    // MessageStatus messageStatus;
+  }
+
+  struct MessageConfirmation {
+    bytes32 message_id;
+    address[] confirmations;
+    MessageStatus messageStatus;
   }
 }
