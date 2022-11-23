@@ -28,7 +28,6 @@ contract MastermostV1 is Pausable, EIP712 {
       'Messages(Message[] messages)Message(uint256 version,uint256 nonce,bytes32 source_chain_id,bytes32 destination_chain_id,bytes32 message_id,address sender_address;address executor_address,MessageType datatype,bytes4 method,bytes32 params)'
     );
 
-
   // destination_chain_id => last nonce
   mapping(bytes32 => uint256) destinMsgNonce;
 
@@ -77,7 +76,6 @@ contract MastermostV1 is Pausable, EIP712 {
     require(msg.value == 0, 'Not enough Wei for fee');
     // TODO: проверка, что отправитель сообщения правильный
     // TODO: проверка, что адреса назначения не в чёрном списке (или белом)
-
     // TODO собрать комиссию: FeeManager.getFee{value: msg.value}(msg.sender, _domainID, destinationDomainID, resourceID, depositData, feeData)
 
     // TODO: добавить случайность ?

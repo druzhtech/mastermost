@@ -60,9 +60,9 @@ contract MastermostV2 is ValidatorList {
     address _executor_address,
     MessageSet.MessageType _msgType,
     bytes4 _method,
-    bytes32 _params,
-    uint256 collat,
-    uint256 count
+    bytes32 _params
+    // uint256 collat, - фильры для выборов валидтаоров
+    // uint256 count
   ) public {
     //todo: добавить случайность
     bytes32 _messageId = keccak256(
@@ -96,8 +96,8 @@ contract MastermostV2 is ValidatorList {
       source_chain_id,
       _destination_chain_id,
       _messageId,
-      addressToBytes(msg.sender),
-      addressToBytes(_executor_address),
+      FormatConverter.addressToBytes(msg.sender), // TODO: в других сетях или нужно сделать смк который бы отображал одних форматов названи на другие
+      FormatConverter.addressToBytes(_executor_address),
       _msgType,
       _method,
       _params
@@ -137,14 +137,13 @@ contract MastermostV2 is ValidatorList {
           inputMessage.sender_address,
           MessageSet.MessageType.write,
           IMessageManager.mastermostCallback.selector,
-          bytesToBytes32Array(data)
+          FormatConverter.bytesToBytes32Array(data)
         );
       } else {
         //todo: отправить сообщение что что-то пошло не так
       }
     }
   }
-
 
   function enableBridge() external onlyOwner {
     switchOn = true;
